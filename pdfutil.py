@@ -58,7 +58,7 @@ if len(args) < 1 or args[0] in ["-h", "--help"]:
 	print("-r, --rotate <input file> <-o output file> [-f, --force] [--ranges <start> <end> <rotation>... | --rotation <rotation>]: Rotates either the whole input file or every range separately by a multiple of 90 degrees, overwriting an existing output file if '-f' is provided.")
 	print("-i, --infos <input file> <-o output file> [-f, --force] [--erase] [--[-]<info> <value>]: Changes the input file's metadata, overwriting an existing output file if '-f' is provided. Missing data is kept as is unless '--erase' is provided, to change the behaviour for a single data point use three dashes instead of two.")
 	print("    <info>: author, title, subject, creator, producer, keywords, creation_date, mod_date")
-	print("        date format: yyyymmddhhmmss, missing data will get filled with '0's (beware of possibly corrupt dates...). Times are always UTC + 0.")
+	print("        date format: yyyymmddhhmmss+tt'mm', missing data will get filled with '0's, the timezone will be correctly formatted (beware of possibly corrupt dates...).")
 	print("-di, --dump-infos <file>: Dumps file's metadata")
 	sys.exit(0)
 
