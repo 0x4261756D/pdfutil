@@ -37,6 +37,21 @@ def get_info_value_simple(name):
 		return args[args.index(f"--{name}") + 1]
 	return None
 
+def get_datestring(date):
+	if date[0] == "(":
+		date = date[1:]
+	if date[-1] == ")":
+		date = date[:-1]
+	if not date.startswith("D:"):
+		date = "D:" + date
+	if not (date[-1] == "'" and date[-4] == "'" and date[-7] == "+"):
+		date = date + "+00'00'"
+	if len(date) != 23:
+		print(date)
+		date = date[:date.index("+")] + "0" * (23 - len(date)) + date[date.index("+"):]
+		
+	return date
+
 if len(args) < 1 or args[0] in ["-h", "--help"]:
 	print("Usage:\n-h, --help: Show this help")
 	print("-m, --merge <input files> <-o output file> [-f, --force]: Merges input files into one, overwriting an existing output file if '-f' is provided.")
@@ -125,10 +140,8 @@ elif args[0] in ["-i", "--info"]:
 		subject = get_info_value("subject", should_keep, reader.Info.Subject)
 		creator = get_info_value("creator", should_keep, reader.Info.Creator)
 		producer = get_info_value("producer", should_keep, reader.Info.Producer)
-		mod_date = get_info_value("mod_date", should_keep, str(reader.Info.ModDate)[3:-8])
-		mod_date += "0" * (14 - len(mod_date))
-		creation_date = get_info_value("creation_date", should_keep, str(reader.Info.CreationDate)[3:-8])
-		creation_date += "0" * (14 - len(creation_date))
+		mod_date = get_info_value("mod_date", should_keep, reader.Info.ModDate)
+		creation_date = get_info_value("creation_date", should_keep, reader.Info.CreationDate)
 	else:
 		author = 	get_info_value_simple("author")
 		title = 	get_info_value_simple("title")
@@ -143,8 +156,8 @@ elif args[0] in ["-i", "--info"]:
 		Subject = subject,
 		Creator = creator,
 		Producer = producer,
-		ModDate = "D:" + mod_date + "+00'00'", # get_datestring(mod_date),
-		CreationDate = "D:" + creation_date + "+00'00'" # get_datestring(creation_date)
+		ModDate = get_datestring(mod_date),
+		CreationDate = get_datestring(creation_date) #"D:" + creation_date + "+00'00'"
 	)
 else:
 	print("Unrecognized option, try '-h' for help")
