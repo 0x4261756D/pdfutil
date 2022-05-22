@@ -9,7 +9,7 @@ The way command line arguments are handled is inconsistent and janky but I can't
 	* the pip library pdfrw
 
 ## Usage
-````bash
+```bash
 python3 pdfutil.py -h
 ```
 
