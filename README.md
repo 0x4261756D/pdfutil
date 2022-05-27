@@ -4,7 +4,7 @@ I had to merge PDFs and rotate them and somehow writing a python script was fast
 
 The way command line arguments are handled is inconsistent and janky.
 
-Expect dates to be crumble and not work if you so much as blow on them...
+Expect dates to crumble and not work if you so much as blow on them...
 
 ## Dependencies
 * Python3 obviously

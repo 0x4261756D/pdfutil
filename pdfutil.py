@@ -1,10 +1,10 @@
-import pdfrw as pdf
+import pdfrw as pdf # type: ignore
 import sys
 from os import path
 
-args = sys.argv[1:]
+args: list[str] = sys.argv[1:]
 
-def get_out_path():
+def get_out_path() -> str:
 	global args
 	if not "-o" in args[:-1]:
 		print("no output file provided (-o <output file>)")
@@ -19,7 +19,7 @@ def get_out_path():
 			sys.exit(1)
 	return out_path
 
-def get_info_value(name, should_keep, default):
+def get_info_value(name: str, should_keep: bool, default: str) -> str|None:
 	global args
 	if f'--{name}' in args[:-1]:
 		return args[args.index(f"--{name}") + 1]
@@ -31,13 +31,15 @@ def get_info_value(name, should_keep, default):
 		return default
 	return None
 
-def get_info_value_simple(name):
+def get_info_value_simple(name: str) -> str|None:
 	global args
 	if f"--{name}" in args[-1]:
 		return args[args.index(f"--{name}") + 1]
 	return None
 
-def get_datestring(date):
+def get_datestring(date: str|None) -> str|None:
+	if not date:
+		return None
 	if date[0] == "(":
 		date = date[1:]
 	if date[-1] == ")":
@@ -73,7 +75,7 @@ if args[0] in ["-di", "--dump-infos"]:
 	sys.exit(0)
 
 writer = pdf.PdfWriter()
-out_path = get_out_path()
+out_path: str = get_out_path()
 if args[0] in ["-m", "--merge"]:
 	for arg in args:
 		if arg.startswith("-") or arg == out_path:
@@ -91,40 +93,41 @@ elif args[0] in ["-r", "--rotate"]:
 		print(f"ERROR: Input file '{args[1]}' does not exist.")
 		sys.exit(1)
 	pages = pdf.PdfReader(args[1]).pages
-	# if only one constant rotation is applied
+	# if there are ranges
 	if "--ranges" in args:
 		ranges = args[args.index("--ranges")+1:]
 		if len(ranges) % 3 != 0:
 			print("ERROR: Provided ranges have the wrong number of values.")
 			sys.exit(1)
 		for i in range(0, len(ranges), 3):
-			start = int(ranges[i]) - 1
+			start: int = int(ranges[i]) - 1
 			if start < 0 or start >= len(pages):
 				print(f"ERROR: Provided start value '{start}' was outside of the provided file's range '0-{len(pages)}'.")
 				sys.exit(1)
-			end = int(ranges[i + 1])
+			end: int = int(ranges[i + 1])
 			if end < 0 or start >= len(pages):
 				print(f"ERROR: Provided ending value '{end}' was outside of the provided file's range '0-{len(pages)}'.")
 				sys.exit(1)
 			if start > end:
 				print(f"ERROR: Provided ending value '{end}' is smaller than the provided start value '{start}'.")
 				sys.exit(1)
-			rotation = int(ranges[i + 2])
+			rotation: int = int(ranges[i + 2])
 			if rotation < 0 or rotation % 90 != 0:
 				print(f"ERROR: Provided rotation value '{rotation}' is not a positive multiple of 90.")
 				sys.exit(1)
 			for j in range(start, end):
 				pages[j].Rotate = (int(pages[j].inheritable.Rotate or 0) + rotation) % 360
+	# if there is only one constant rotation
 	else:
 		if not "--rotation" in args[:-1]:
 			print("ERROR: No rotation provided")
 			sys.exit(1)
-		rotation = int(args[args.index("--rotation") + 1])
-		if rotation < 0 or rotation % 90 != 0:
+		rot: int = int(args[args.index("--rotation") + 1])
+		if rot < 0 or rot % 90 != 0:
 			print(f"ERROR: Provided rotation value '{rotation}' is not a positive multiple of 90.")
 			sys.exit(1)
 		for j in range(len(pages)):
-			pages[j].Rotate = (int(pages[j].inheritable.Rotate or 0) + rotation) % 360
+			pages[j].Rotate = (int(pages[j].inheritable.Rotate or 0) + rot) % 360
 	writer.Info = reader.Info
 	writer.addpages(pages)
 elif args[0] in ["-i", "--info"]:
@@ -133,23 +136,15 @@ elif args[0] in ["-i", "--info"]:
 		sys.exit(1)
 	reader = pdf.PdfReader(args[1])
 	writer.addpages(reader.pages)
-	if reader.Info:
-		should_keep = "--erase" not in args
-		author = get_info_value("author", should_keep, reader.Info.Author)
-		title = get_info_value("title", should_keep, reader.Info.Title)
-		subject = get_info_value("subject", should_keep, reader.Info.Subject)
-		creator = get_info_value("creator", should_keep, reader.Info.Creator)
-		producer = get_info_value("producer", should_keep, reader.Info.Producer)
-		mod_date = get_info_value("mod_date", should_keep, reader.Info.ModDate)
-		creation_date = get_info_value("creation_date", should_keep, reader.Info.CreationDate)
-	else:
-		author = 	get_info_value_simple("author")
-		title = 	get_info_value_simple("title")
-		subject = 	get_info_value_simple("subject")
-		creator = 	get_info_value_simple("creator")
-		producer = 	get_info_value_simple("producer")
-		mod_date = 	get_info_value_simple("mod_date")
-		creation_date = get_info_value("creation_date")
+	should_keep: bool = "--erase" not in args
+	author: None|str = get_info_value("author", should_keep, reader.Info.Author) if reader.Info else get_info_value_simple("author")
+	title: None|str = get_info_value("title", should_keep, reader.Info.Title) if reader.Info else get_info_value_simple("title")
+	subject: None|str = get_info_value("subject", should_keep, reader.Info.Subject) if reader.Info else get_info_value_simple("subject")
+	creator: None|str = get_info_value("creator", should_keep, reader.Info.Creator) if reader.Info else get_info_value_simple("creator")
+	producer: None|str = get_info_value("producer", should_keep, reader.Info.Producer) if reader.Info else get_info_value_simple("producer")
+	mod_date: None|str = get_info_value("mod_date", should_keep, reader.Info.ModDate) if reader.Info else get_info_value_simple("mod_date")
+	creation_date: None|str = get_info_value("creation_date", should_keep, reader.Info.CreationDate) if reader.Info else get_info_value_simple("creation_date")
+
 	writer.trailer.Info = pdf.IndirectPdfDict(
 		Author = author,
 		Title = title,
