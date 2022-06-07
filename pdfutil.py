@@ -92,7 +92,8 @@ elif args[0] in ["-r", "--rotate"]:
 	if not path.exists(args[1]):
 		print(f"ERROR: Input file '{args[1]}' does not exist.")
 		sys.exit(1)
-	pages = pdf.PdfReader(args[1]).pages
+	reader = pdf.PdfReader(args[1])
+	pages = reader.pages
 	# if there are ranges
 	if "--ranges" in args:
 		ranges = args[args.index("--ranges")+1:]
