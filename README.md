@@ -10,9 +10,23 @@ Expect dates to crumble and not work if you so much as blow on them...
 * Python3 obviously
 	* the pip library pdfrw
 
+## Installation instructions
+
+Install [Python](https://www.python.org/downloads/)
+```bash
+python3 -m pip install pdfrw
+```
+
 ## Usage
 ```bash
 python3 pdfutil.py -h
+```
+
+## Examples
+
+Update the title, author and creation date of *test.pdf*
+```bash
+python3 pdfutil -i test.pdf --title "Arnold Layne" --author "Syd Barret" --creation_date 19670310 -f
 ```
 
 If against all odds someone really uses this and finds a bug, feel free to report it.

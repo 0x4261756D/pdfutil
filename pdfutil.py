@@ -6,11 +6,15 @@ args: list[str] = sys.argv[1:]
 
 def get_out_path() -> str:
 	global args
-	if not "-o" in args[:-1]:
-		print("no output file provided (-o <output file>)")
-		sys.exit(1)
-	out_path = args[args.index("-o") + 1]
 	should_overwrite = "-f" in args or "--force" in args
+	if not "-o" in args[:-1]:
+		if should_overwrite:
+			out_path = args[1]
+		else:
+			print("no output file provided (-o <output file>)")
+			sys.exit(1)
+	else:
+		out_path = args[args.index("-o") + 1]
 	if path.exists(out_path):
 		if should_overwrite:
 			print("WARNING: Output file already exists, overwriting it.")
@@ -49,8 +53,9 @@ def get_datestring(date: str|None) -> str|None:
 	if not (date[-1] == "'" and date[-4] == "'" and date[-7] == "+"):
 		date = date + "+00'00'"
 	if len(date) != 23:
-		print(date)
+		print("The provided date", date, "had an incorrect length", len(date), end="")
 		date = date[:date.index("+")] + "0" * (23 - len(date)) + date[date.index("+"):]
+		print(", it was expanded to", date)
 		
 	return date
 
