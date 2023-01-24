@@ -64,8 +64,9 @@ if len(args) < 1 or args[0] in ["-h", "--help"]:
 	print("-m, --merge <input files> <-o output file> [-f, --force]: Merges input files into one, overwriting an existing output file if '-f' is provided.")
 	print("-r, --rotate <input file> <-o output file> [-f, --force] [--ranges <start> <end> <rotation>... | --rotation <rotation>]: Rotates either the whole input file or every range separately by a multiple of 90 degrees, overwriting an existing output file if '-f' is provided.")
 	print("-i, --infos <input file> <-o output file> [-f, --force] [--erase] [--[-]<info> <value>]: Changes the input file's metadata, overwriting an existing output file if '-f' is provided. Missing data is kept as is unless '--erase' is provided, to change the behaviour for a single data point use three dashes instead of two.")
-	print("    <info>: author, title, subject, creator, producer, keywords, creation_date, mod_date")
+	print("    <info>: author, title, subject, creator, producer, keywords, creation_date, mod_date, page_layout")
 	print("        date format: yyyymmddhhmmss+tt'mm', missing data will get filled with '0's, the timezone will be correctly formatted (beware of possibly corrupt dates...).")
+	print("        page_layout values: SinglePage, OneColumn, TwoColumnLeft, TwoColumnRight, TwoPageLeft, TwoPageRight")
 	print("-di, --dump-infos <file>: Dumps file's metadata")
 	sys.exit(0)
 
@@ -150,6 +151,7 @@ elif args[0] in ["-i", "--info"]:
 	producer: None|str = get_info_value("producer", should_keep, reader.Info.Producer) if reader.Info else get_info_value_simple("producer")
 	mod_date: None|str = get_info_value("mod_date", should_keep, reader.Info.ModDate) if reader.Info else get_info_value_simple("mod_date")
 	creation_date: None|str = get_info_value("creation_date", should_keep, reader.Info.CreationDate) if reader.Info else get_info_value_simple("creation_date")
+	page_layout: None|str = get_info_value("page_layout", should_keep, reader.Root.PageLayout) if reader.Root else get_info_value_simple("page_layout")
 
 	writer.trailer.Info = pdf.IndirectPdfDict(
 		Author = author,
@@ -158,8 +160,10 @@ elif args[0] in ["-i", "--info"]:
 		Creator = creator,
 		Producer = producer,
 		ModDate = get_datestring(mod_date),
-		CreationDate = get_datestring(creation_date) #"D:" + creation_date + "+00'00'"
+		CreationDate = get_datestring(creation_date), #"D:" + creation_date + "+00'00'"
 	)
+	if page_layout != None:
+		writer.trailer.Root.PageLayout = pdf.PdfName(page_layout)
 else:
 	print("Unrecognized option, try '-h' for help")
 	sys.exit(1)
