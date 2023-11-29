@@ -68,6 +68,7 @@ if len(args) < 1 or args[0] in ["-h", "--help"]:
 	print("        date format: yyyymmddhhmmss+tt'mm', missing data will get filled with '0's, the timezone will be correctly formatted (beware of possibly corrupt dates...).")
 	print("        page_layout values: SinglePage, OneColumn, TwoColumnLeft, TwoColumnRight, TwoPageLeft, TwoPageRight")
 	print("-di, --dump-infos <file>: Dumps file's metadata")
+	print("-d, --delete <input file> <-o output file> [-f, --force] [<page> | <start>-<end> | -<end> | <start>-]...: Deletes the single pages or (inclusive) ranges of pages from the input file, overwriting an existing output file if '-f' is provided")
 	sys.exit(0)
 
 if args[0] in ["-di", "--dump-infos"]:
@@ -164,6 +165,54 @@ elif args[0] in ["-i", "--info"]:
 	)
 	if page_layout != None:
 		writer.trailer.Root.PageLayout = pdf.PdfName(page_layout)
+elif args[0] in ["-d", "--delete"]:
+	# TODO: Make the argument structure more uniform between rotate and delete
+	if not path.exists(args[1]):
+		print(f"ERROR: Input file '{args[1]}' does not exist.")
+		sys.exit(1)
+	reader = pdf.PdfReader(args[1])
+	pages = reader.pages
+	deleted_pages = set()
+	start_index = max(args.index('-o') + 1, args.index('-f')) + 1
+	for arg in args[start_index:]:
+		parts = arg.split('-')
+		# single page:
+		if len(parts) == 1:
+			if not parts[0].isdigit():
+				print(f"ERROR: Single page '{parts[0]}' is not a number")
+				sys.exit(1)
+			page = int(parts[0]) - 1
+			if page < 0 or page >= len(pages):
+				print(f"ERROR: Single page '{parts[0]}' is outside of the valid range 1-{len(pages)}")
+				sys.exit(1)
+			deleted_pages.add(page)
+		else:
+			# no lower bound
+			start = 0
+			if len(parts[0]) != 0:
+				if not parts[0].isdigit():
+					print(f"ERROR: Range lower bound '{parts[0]}' is not a number")
+					sys.exit(1)
+				start = int(parts[0]) - 1
+				if start < 0 or start >= len(pages):
+					print(f"ERROR: Range lower bound '{parts[0]}' is outside of the valid range 1-{len(pages)}")
+					sys.exit(1)
+			end = len(pages) - 1
+			if len(parts[1]) != 0:
+				if not parts[1].isdigit():
+					print(f"ERROR: Range upper bound '{parts[1]}' is not a number")
+					sys.exit(1)
+				end = int(parts[1]) - 1
+				if end < 0 or end >= len(pages):
+					print(f"ERROR: Range upper bound '{parts[1]}' is outside of the valid range 1-{len(pages)}")
+					sys.exit(1)
+			print("start", start, "end", end)
+			for i in range(start, end + 1):
+				deleted_pages.add(i)
+	writer.Info = reader.Info
+	for i, page in enumerate(reader.pages):
+		if not i in deleted_pages:
+			writer.addpage(page)
 else:
 	print("Unrecognized option, try '-h' for help")
 	sys.exit(1)
