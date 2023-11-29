@@ -129,12 +129,12 @@ elif args[0] in ["-r", "--rotate"]:
 		if not "--rotation" in args[:-1]:
 			print("ERROR: No rotation provided")
 			sys.exit(1)
-		rot: int = int(args[args.index("--rotation") + 1])
-		if rot < 0 or rot % 90 != 0:
+		rotation: int = int(args[args.index("--rotation") + 1])
+		if rotation < 0 or rotation % 90 != 0:
 			print(f"ERROR: Provided rotation value '{rotation}' is not a positive multiple of 90.")
 			sys.exit(1)
 		for j in range(len(pages)):
-			pages[j].Rotate = (int(pages[j].inheritable.Rotate or 0) + rot) % 360
+			pages[j].Rotate = (int(pages[j].inheritable.Rotate or 0) + rotation) % 360
 	writer.Info = reader.Info
 	writer.addpages(pages)
 elif args[0] in ["-i", "--info"]:
